@@ -1,0 +1,44 @@
+import React from "react";
+import PropTypes from "prop-types";
+import classes from "./Burgeringredient.module.css";
+
+const burgeringedient = (props) => {
+	let ingredient = null;
+	switch (props.type) {
+		case "breadBottom":
+			ingredient = <div className={classes.BreadBottom}></div>;
+			break;
+
+		case "breadTop":
+			ingredient = (
+				<div className={classes.BreadTop}>
+					<div className={classes.Seeds1}></div>
+					<div className={classes.Seeds2}></div>
+				</div>
+			);
+			break;
+		case "meat":
+			ingredient = <div className={classes.Meat}></div>;
+			break;
+		case "cheese":
+			ingredient = <div className={classes.Cheese}></div>;
+			break;
+		case "salad":
+			ingredient = <div className={classes.Salad}></div>;
+			break;
+		case "bacon":
+			ingredient = <div className={classes.Bacon}></div>;
+			break;
+
+		default:
+			ingredient = null;
+	}
+
+	return ingredient;
+};
+
+burgeringedient.propTypes = {
+	type: PropTypes.string.isRequired,
+};
+
+export default burgeringedient;
