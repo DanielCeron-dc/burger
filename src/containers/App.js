@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import Layout from "../components/Layout/Layout";
 import BurgerBuilder from "./BurgerBuilder/BurgerBuilder";
 import CheckOut from "./CheckOut/CheckOut";
+import { Route } from "react-router-dom";
+import Orders from "./Orders/Orders";
+
 import "./App.css";
 
 class App extends Component {
@@ -9,8 +12,9 @@ class App extends Component {
 		return (
 			<div>
 				<Layout>
-					<BurgerBuilder></BurgerBuilder>
-					<CheckOut />
+					<Route path='/orders' component={Orders} />
+					<Route path='/' exact component={BurgerBuilder} />
+					<Route path='/checkout' component={CheckOut} />
 				</Layout>
 			</div>
 		);
