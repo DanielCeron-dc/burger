@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Layout from "../components/Layout/Layout";
-import BurgerBuilder from "./BurgerBuilder/BurgerBuilder";
+import BurgerBuilder from "./BurgerBuilder/BurgerBuilder.jsx";
 import CheckOut from "./CheckOut/CheckOut";
 import { Route } from "react-router-dom";
 import Orders from "./Orders/Orders";
