@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 
-import * as actionTypes from "../../store/actions";
+import * as actions from "../../store/actions";
+
 import Burger from "../../components/Burger/Burger";
 import BuildControls from "../../components/Burger/BuildControls/BuildControls";
 import Modal from "../../components/UI/Modal/Modal";
@@ -18,13 +19,8 @@ class BurgerBuilder extends Component {
 	};
 
 	componentDidMount() {
-		/* console.log(this.props);
-		axios
-			.get("https://react-my-burger-609a3.firebaseio.com/ingredients.json")
-			.then((response) => {
-				this.setState({ ingredients: response.data });
-			})
-			.catch((e) => {}); */
+		this.props.initIngredients();
+		this.props.initPurchased();
 	}
 
 	showPurchasingModelHandler = () => {
@@ -58,8 +54,9 @@ class BurgerBuilder extends Component {
 
 		let orderSummary = null;
 
-		let burger = <Spinner />;
+		let burger;
 
+		this.props.error ? (burger = <p>ingredients cant be loaded</p>) : (burger = <Spinner />);
 		if (this.props.ingredients) {
 			orderSummary = (
 				<OrderSummary
@@ -84,7 +81,7 @@ class BurgerBuilder extends Component {
 			);
 		}
 
-		if (this.state.loading) {
+		if (this.props.loading) {
 			orderSummary = <Spinner />;
 		}
 
@@ -101,15 +98,18 @@ class BurgerBuilder extends Component {
 
 const mapStateToProps = (state) => {
 	return {
-		ingredients: state.ingredients,
-		price: state.price,
+		ingredients: state.burgerBuilder.ingredients,
+		price: state.burgerBuilder.price,
+		error: state.burgerBuilder.error,
 	};
 };
 
 const mapDispathToProps = (dispatch) => {
 	return {
-		addIngredient: (ingredientName) => dispatch({ type: actionTypes.ADD_INGREDIENT, ingredientName }),
-		removeIngredient: (ingredientName) => dispatch({ type: actionTypes.REMOVE_INGREDIENT, ingredientName }),
+		addIngredient: (ingredientName) => dispatch(actions.addIngredient(ingredientName)),
+		removeIngredient: (ingredientName) => dispatch(actions.removeIngredient(ingredientName)),
+		initIngredients: () => dispatch(actions.initIngredients()),
+		initPurchased: () => dispatch(actions.initPurchased()),
 	};
 };
 

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Route } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 
 import ContactData from "./ContactData/ContactData";
 import classes from "./CheckOut.module.css";
@@ -16,21 +16,27 @@ class CheckOut extends Component {
 	};
 
 	render() {
-		return (
-			<div className={classes.CheckOut}>
-				<CheckOutSummary
-					ingredients={this.props.ingredients}
-					cancel={this.checkOutCancelledHandler}
-					continue={this.checkOutContinueHandler}
-				/>
-				<Route path={this.props.match.url + "/contact-data"} component={ContactData} />
-			</div>
-		);
+		let summary = <Redirect to='/' />; //* if is no loaded the ingredients :D
+		if (this.props.ingredients && !this.props.purchased) {
+			summary = (
+				<div className={classes.CheckOut}>
+					<CheckOutSummary
+						ingredients={this.props.ingredients}
+						cancel={this.checkOutCancelledHandler}
+						continue={this.checkOutContinueHandler}
+					/>
+					<Route path={this.props.match.url + "/contact-data"} component={ContactData} />
+				</div>
+			);
+		}
+
+		return summary;
 	}
 }
 const mapStateToProps = (state) => {
 	return {
-		ingredients: state.ingredients,
+		ingredients: state.burgerBuilder.ingredients,
+		purchased: state.order.purchased,
 	};
 };
 
