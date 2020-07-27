@@ -8,6 +8,7 @@ import axios from "../../../axios-orders";
 import Input from "../../../components/UI/Input/Input";
 import * as actions from "../../../store/actions";
 import withErrorHandler from "../../../hoc/withErrorHandler";
+import { checkValidityInputs } from "../../../tools/formTools";
 
 class ContactData extends Component {
 	state = {
@@ -23,8 +24,8 @@ class ContactData extends Component {
 				validation: {
 					required: true,
 				},
+
 				valid: false,
-				touched: false,
 			},
 			street: {
 				elementType: "input",
@@ -36,8 +37,8 @@ class ContactData extends Component {
 				validation: {
 					required: true,
 				},
+
 				valid: false,
-				touched: false,
 			},
 			country: {
 				elementType: "input",
@@ -49,8 +50,8 @@ class ContactData extends Component {
 				validation: {
 					required: true,
 				},
+
 				valid: false,
-				touched: false,
 			},
 			email: {
 				elementType: "input",
@@ -61,9 +62,10 @@ class ContactData extends Component {
 				value: "",
 				validation: {
 					required: true,
+					isEmail: true,
 				},
+
 				valid: false,
-				touched: false,
 			},
 
 			deliveryMethod: {
@@ -76,6 +78,8 @@ class ContactData extends Component {
 				},
 				validation: {},
 				value: "fastest",
+
+				valid: true,
 			},
 			zipCode: {
 				elementType: "input",
@@ -89,50 +93,23 @@ class ContactData extends Component {
 					maxLenght: 5,
 					minLenght: 5,
 				},
+
 				valid: false,
-				touched: false,
 			},
 		},
 	};
 
-	//* form function
-	checkValidity = (value, rules) => {
-		let isValid = true;
-		if (rules.required) {
-			isValid = value.trim() !== "" && isValid;
-		}
-		if (rules.minLenght) {
-			isValid = value.length >= rules.minLenght && isValid;
-		}
-		if (rules.maxLenght) {
-			isValid = value.length <= rules.maxLenght && isValid;
-		}
-		return isValid;
-	};
-
-	//* form function
-	checkValidityOrderButton = () => {
-		for (let key in this.state.orderForm) {
-			if (this.state.orderForm[key].validation) {
-				if ((this.state.orderForm[key].valid && this.state.orderForm[key].touched) === false) {
-					this.setState({ disable: true });
-					return;
-				}
-			}
-		}
-		this.setState({ disable: false });
-	};
-
-	//* form function
-	inputChangedHandler = (event, inputIdentifier) => {
+	//!new
+	inputStateHandler = (inputIdentifier, valid) => {
 		const orderFormCopy = this.state.orderForm;
 		const copy = this.state.orderForm[inputIdentifier];
-		copy.value = event.target.value;
-		copy.touched = true;
-		copy.valid = this.checkValidity(copy.value, copy.validation);
+		copy.valid = valid;
+
 		orderFormCopy[inputIdentifier] = copy;
-		this.setState({ orderForm: orderFormCopy });
-		this.checkValidityOrderButton();
+		this.setState({
+			orderForm: orderFormCopy,
+			disable: checkValidityInputs(inputIdentifier, valid, this.state.orderForm),
+		});
 	};
 
 	sendToFirebase = () => {
@@ -147,7 +124,7 @@ class ContactData extends Component {
 			customer: orderData,
 		};
 
-		this.props.onPurchase(order);
+		this.props.onPurchase(order, this.props.token);
 	};
 
 	orderHandler = (event) => {
@@ -162,11 +139,13 @@ class ContactData extends Component {
 			inputElements.push(
 				<Input
 					key={key}
+					id={key}
+					value={this.state.orderForm[key].value}
 					inputType={this.state.orderForm[key].elementType}
 					inputConfig={this.state.orderForm[key].elementConfig}
-					value={this.state.orderForm[key].value}
-					invalid={!this.state.orderForm[key].valid && this.state.orderForm[key].touched}
-					changed={(event) => this.inputChangedHandler(event, key)}
+					firstValue={this.state.orderForm[key].value}
+					changed={this.inputStateHandler}
+					rules={this.state.orderForm[key].validation}
 				/>
 			);
 		}
@@ -191,18 +170,15 @@ class ContactData extends Component {
 	}
 }
 
-const mapStateToProps = (state) => {
-	return {
-		ingredients: state.burgerBuilder.ingredients,
-		price: state.burgerBuilder.price,
-		loading: state.order.loading,
-	};
-};
+const mapStateToProps = (state) => ({
+	ingredients: state.burgerBuilder.ingredients,
+	price: state.burgerBuilder.price,
+	loading: state.order.loading,
+	token: state.auth.token,
+});
 
-const mapDispatchToProps = (dispatch) => {
-	return {
-		onPurchase: (orderData) => dispatch(actions.purchaseBurger(orderData)),
-	};
-};
+const mapDispatchToProps = (dispatch) => ({
+	onPurchase: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));

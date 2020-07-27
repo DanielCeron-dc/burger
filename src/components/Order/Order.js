@@ -30,7 +30,7 @@ const order = (props) => {
 			<p>
 				Price: <strong>USD {props.price}</strong>
 			</p>
-			<Button btnType='Danger' clicked={() => props.deleteOrder(props.id)}>
+			<Button btnType='Danger' clicked={() => props.deleteOrder(props.id, props.token)}>
 				delete
 			</Button>
 		</div>
@@ -39,8 +39,12 @@ const order = (props) => {
 
 const mapDispatchToProps = (dispatch) => {
 	return {
-		deleteOrder: (id) => dispatch(actions.deleteOrder(id)),
+		deleteOrder: (id, token) => dispatch(actions.deleteOrder(id, token)),
 	};
 };
 
-export default connect(null, mapDispatchToProps)(order);
+const mapStateToProps = (state) => ({
+	token: state.auth.token,
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(order);

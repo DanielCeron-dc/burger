@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import { Redirect } from "react-router-dom";
 
 import withErrorHandler from "../../hoc/withErrorHandler";
 import axios from "../../axios-orders";
@@ -9,7 +10,7 @@ import Spinner from "../../components/UI/Spinner/Spinner";
 
 class Orders extends Component {
 	componentDidMount() {
-		this.props.onFetchOrder();
+		this.props.onFetchOrder(this.props.token);
 	}
 
 	render() {
@@ -24,6 +25,11 @@ class Orders extends Component {
 			);
 		}
 
+		if (this.props.token === null) {
+			//*verify  if is authenticated
+			orders = <Redirect to='/' />;
+		}
+
 		return orders;
 	}
 }
@@ -32,12 +38,13 @@ const mapStateToProps = (state) => {
 	return {
 		orders: state.order.orders,
 		loading: state.order.loading,
+		token: state.auth.token,
 	};
 };
 
 const mapDispatchToProps = (dispatch) => {
 	return {
-		onFetchOrder: () => dispatch(actions.fetchOrders()),
+		onFetchOrder: (token) => dispatch(actions.fetchOrders(token)),
 	};
 };
 

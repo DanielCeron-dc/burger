@@ -1,5 +1,5 @@
-import * as actionTypes from "../actions/actionsTypes";
-import { updateState } from "../utility";
+import * as actionTypes from "../actions/actionsTypes.action";
+import { updateObject } from "../../tools/codeClean";
 
 const INGREDIENTS_PRICES = {
 	salad: 0.4,
@@ -12,6 +12,7 @@ const intialState = {
 	ingredients: null,
 	price: 0,
 	error: false,
+	purchasing: false,
 };
 
 const addIngredient = (state, action) => {
@@ -44,9 +45,11 @@ const reducer = (state = intialState, action) => {
 		case actionTypes.REMOVE_INGREDIENT:
 			return removeIngredient(state, action);
 		case actionTypes.SET_INGREDIENTS:
-			return updateState(state, { ingredients: action.ingredients, error: false, price: action.price });
+			return updateObject(state, { ingredients: action.ingredients, error: false, price: action.price });
 		case actionTypes.FETCH_INGREDIENTS_FAILED:
-			return updateState(state, { error: true });
+			return updateObject(state, { error: true });
+		case actionTypes.CHANGE_PURCHASING_STATE:
+			return updateObject(state, { purchasing: action.payload });
 		default:
 			return state;
 	}

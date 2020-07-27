@@ -17,6 +17,7 @@ class CheckOut extends Component {
 
 	render() {
 		let summary = <Redirect to='/' />; //* if is no loaded the ingredients :D
+
 		if (this.props.ingredients && !this.props.purchased) {
 			summary = (
 				<div className={classes.CheckOut}>

@@ -14,7 +14,6 @@ import withErrorHandler from "../../hoc/withErrorHandler";
 class BurgerBuilder extends Component {
 	state = {
 		purchasable: false,
-		purchasing: false,
 		loading: false,
 	};
 
@@ -24,14 +23,18 @@ class BurgerBuilder extends Component {
 	}
 
 	showPurchasingModelHandler = () => {
-		this.setState({ purchasing: true });
+		this.props.changePurchasingState(true);
+		if (!this.props.isAuth) {
+			this.props.history.push("/auth");
+		}
 	};
 
 	closePurchasingModelHandler = () => {
-		this.setState({ purchasing: false });
+		this.props.changePurchasingState(false);
 	};
 
 	continuePurchasingModelHandler = () => {
+		this.props.changePurchasingState(false);
 		this.props.history.push("/checkout");
 	};
 
@@ -71,6 +74,7 @@ class BurgerBuilder extends Component {
 				<React.Fragment>
 					<Burger ingredients={this.props.ingredients} />
 					<BuildControls
+						isAuth={this.props.isAuth}
 						disable={this.updatePurchaseState(this.props.ingredients)}
 						price={this.props.price}
 						showPurchasingFunc={this.showPurchasingModelHandler}
@@ -87,7 +91,7 @@ class BurgerBuilder extends Component {
 
 		return (
 			<React.Fragment>
-				<Modal show={this.state.purchasing} closeModalFunc={this.closePurchasingModelHandler}>
+				<Modal show={this.props.purchasing} closeModalFunc={this.closePurchasingModelHandler}>
 					{orderSummary}
 				</Modal>
 				{burger}
@@ -101,6 +105,8 @@ const mapStateToProps = (state) => {
 		ingredients: state.burgerBuilder.ingredients,
 		price: state.burgerBuilder.price,
 		error: state.burgerBuilder.error,
+		isAuth: state.auth.token !== null,
+		purchasing: state.burgerBuilder.purchasing,
 	};
 };
 
@@ -110,6 +116,7 @@ const mapDispathToProps = (dispatch) => {
 		removeIngredient: (ingredientName) => dispatch(actions.removeIngredient(ingredientName)),
 		initIngredients: () => dispatch(actions.initIngredients()),
 		initPurchased: () => dispatch(actions.initPurchased()),
+		changePurchasingState: (value) => dispatch(actions.changePurchasingState(value)),
 	};
 };
 
