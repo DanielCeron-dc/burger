@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useReducer, useCallback } from "react";
 import { connect } from "react-redux";
 
 import Spinner from "../../../components/UI/Spinner/Spinner";
@@ -10,165 +10,168 @@ import * as actions from "../../../store/actions";
 import withErrorHandler from "../../../hoc/withErrorHandler";
 import { checkValidityInputs } from "../../../tools/formTools";
 
-class ContactData extends Component {
-	state = {
-		disable: true,
-		orderForm: {
-			name: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "Your Name",
-				},
-				value: "",
-				validation: {
-					required: true,
-				},
-
-				valid: false,
+const initialState = {
+	disable: true,
+	orderForm: {
+		name: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "Your Name",
 			},
-			street: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "Street",
-				},
-				value: "",
-				validation: {
-					required: true,
-				},
-
-				valid: false,
+			value: "",
+			validation: {
+				required: true,
 			},
-			country: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "Country",
-				},
-				value: "",
-				validation: {
-					required: true,
-				},
-
-				valid: false,
-			},
-			email: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "E-mail",
-				},
-				value: "",
-				validation: {
-					required: true,
-					isEmail: true,
-				},
-
-				valid: false,
-			},
-
-			deliveryMethod: {
-				elementType: "select",
-				elementConfig: {
-					options: [
-						{ value: "fastest", displayValue: "fastest" },
-						{ value: "chepeast", displayValue: "chepeast" },
-					],
-				},
-				validation: {},
-				value: "fastest",
-
-				valid: true,
-			},
-			zipCode: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "Zip Code",
-				},
-				value: "",
-				validation: {
-					required: true,
-					maxLenght: 5,
-					minLenght: 5,
-				},
-
-				valid: false,
-			},
+			valid: false,
 		},
-	};
+		street: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "Street",
+			},
+			value: "",
+			validation: {
+				required: true,
+			},
+			valid: false,
+		},
+		country: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "Country",
+			},
+			value: "",
+			validation: {
+				required: true,
+			},
+			valid: false,
+		},
+		email: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "E-mail",
+			},
+			value: "",
+			validation: {
+				required: true,
+				isEmail: true,
+			},
+			valid: false,
+		},
+
+		deliveryMethod: {
+			elementType: "select",
+			elementConfig: {
+				options: [
+					{ value: "fastest", displayValue: "fastest" },
+					{ value: "chepeast", displayValue: "chepeast" },
+				],
+			},
+			validation: {},
+			value: "fastest",
+			valid: true,
+		},
+		zipCode: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "Zip Code",
+			},
+			value: "",
+			validation: {
+				required: true,
+				maxLenght: 5,
+				minLenght: 5,
+			},
+			valid: false,
+		},
+	},
+};
+
+const formReducer = (state, action) => {
+	switch (action.type) {
+		case "CHANGE_ELEMENT_VALUE":
+			let updatedState = { ...state };
+			let updatedform = { ...state.orderForm };
+			updatedform[action.indentifier].value = action.update;
+			updatedState.OrderForm = updatedform;
+			return updatedState;
+		case "CHANGE_DISABLE":
+			return { ...state, disable: checkValidityInputs("", false, state.orderForm) };
+
+		default:
+			return state;
+	}
+};
+
+const ContactData = (props) => {
+	const [formState, formDispatch] = useReducer(formReducer, initialState);
 
 	//!new
-	inputStateHandler = (inputIdentifier, valid) => {
-		const orderFormCopy = this.state.orderForm;
-		const copy = this.state.orderForm[inputIdentifier];
-		copy.valid = valid;
+	const inputStateHandler = useCallback((inputIdentifier, valid, value) => {
+		formDispatch({ type: "CHANGE_ELEMENT_VALUE", update: value, indentifier: inputIdentifier });
+		formDispatch({ type: "CHANGE_DISABLE" });
+	}, []);
 
-		orderFormCopy[inputIdentifier] = copy;
-		this.setState({
-			orderForm: orderFormCopy,
-			disable: checkValidityInputs(inputIdentifier, valid, this.state.orderForm),
-		});
-	};
-
-	sendToFirebase = () => {
+	const sendToFirebase = () => {
 		let orderData = {};
-		for (let objectIdentifier in this.state.orderForm) {
-			orderData[objectIdentifier] = this.state.orderForm[objectIdentifier].value;
+		for (let objectIdentifier in formState.orderForm) {
+			orderData[objectIdentifier] = formState.orderForm[objectIdentifier].value;
 		}
 
 		const order = {
-			ingredients: this.props.ingredients,
-			price: this.props.price.toFixed(2),
+			ingredients: props.ingredients,
+			price: props.price.toFixed(2),
 			customer: orderData,
 		};
 
-		this.props.onPurchase(order, this.props.token);
+		props.onPurchase(order, props.token);
 	};
 
-	orderHandler = (event) => {
+	const orderHandler = (event) => {
 		event.preventDefault();
-		this.sendToFirebase();
+		sendToFirebase();
 	};
 
-	render() {
-		let inputElements = [];
+	let inputElements = [];
 
-		for (let key in this.state.orderForm) {
-			inputElements.push(
-				<Input
-					key={key}
-					id={key}
-					value={this.state.orderForm[key].value}
-					inputType={this.state.orderForm[key].elementType}
-					inputConfig={this.state.orderForm[key].elementConfig}
-					firstValue={this.state.orderForm[key].value}
-					changed={this.inputStateHandler}
-					rules={this.state.orderForm[key].validation}
-				/>
-			);
-		}
-
-		let OrderForm = (
-			<div className={classes.ContactData}>
-				<h4> Enter your Contact Data</h4>
-				<form>
-					{inputElements}
-					<Button btnType='Success' clicked={this.orderHandler} disabled={this.state.disable}>
-						ORDER
-					</Button>
-				</form>
-			</div>
+	for (let key in formState.orderForm) {
+		inputElements.push(
+			<Input
+				key={key}
+				id={key}
+				value={formState.orderForm[key].value}
+				inputType={formState.orderForm[key].elementType}
+				inputConfig={formState.orderForm[key].elementConfig}
+				firstValue={formState.orderForm[key].value}
+				changed={inputStateHandler}
+				rules={formState.orderForm[key].validation}
+			/>
 		);
-
-		if (this.props.loading) {
-			OrderForm = <Spinner />;
-		}
-
-		return <div> {OrderForm} </div>;
 	}
-}
+
+	let OrderForm = (
+		<div className={classes.ContactData}>
+			<h4> Enter your Contact Data</h4>
+			<form>
+				{inputElements}
+				<Button btnType='Success' clicked={orderHandler} disabled={formState.disable}>
+					ORDER
+				</Button>
+			</form>
+		</div>
+	);
+
+	if (props.loading) {
+		OrderForm = <Spinner />;
+	}
+
+	return <div> {OrderForm} </div>;
+};
 
 const mapStateToProps = (state) => ({
 	ingredients: state.burgerBuilder.ingredients,

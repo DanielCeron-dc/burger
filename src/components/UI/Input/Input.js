@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import classes from "./Input.module.css";
 
 const Input = (props) => {
-	const { inputType, inputConfig } = props;
+	const { inputType, inputConfig, changed, id, rules } = props;
 	const [valid, setValid] = useState(false);
 	const [touched, settouched] = useState(false);
 	const [value, setvalue] = useState(props.value);
@@ -38,19 +38,26 @@ const Input = (props) => {
 		return isValid;
 	};
 
-	const inputChanged = (event) => {
-		event.preventDefault();
-		settouched(true);
-		setvalue(event.target.value);
-		props.changed(props.id, checkValidity(event.target.value, props.rules), event.target.value);
-	};
+	const inputChanged = useCallback(
+		(event) => {
+			event.preventDefault();
+			settouched(true);
+			setvalue(event.target.value);
+			changed(id, checkValidity(event.target.value, rules), event.target.value);
+		},
+		[changed, id, rules]
+	);
 
 	switch (inputType) {
 		case "input":
-			InputElement = <input className={classesArray.join(" ")} {...inputConfig} value={value} onChange={inputChanged} />;
+			InputElement = (
+				<input className={classesArray.join(" ")} {...inputConfig} value={value} onChange={inputChanged} />
+			);
 			break;
 		case "textarea":
-			InputElement = <textarea className={classesArray.join(" ")} {...inputConfig} value={value} onChange={inputChanged} />;
+			InputElement = (
+				<textarea className={classesArray.join(" ")} {...inputConfig} value={value} onChange={inputChanged} />
+			);
 			break;
 		case "select":
 			InputElement = (

@@ -1,39 +1,41 @@
-import React, { Component } from "react";
-import { Route, Redirect } from "react-router-dom";
+import React, { useCallback } from "react";
+import { Route, Redirect, useRouteMatch } from "react-router-dom";
 
+import { useHistory } from "react-router-dom";
 import ContactData from "./ContactData/ContactData";
 import classes from "./CheckOut.module.css";
 import CheckOutSummary from "../../components/Order/CheckOutSummary/CheckOutSummary";
 import { connect } from "react-redux";
 
-class CheckOut extends Component {
-	checkOutCancelledHandler = () => {
-		this.props.history.push("/");
-	};
+const CheckOut = (props) => {
+	const history = useHistory();
+	const match = useRouteMatch();
 
-	checkOutContinueHandler = () => {
-		this.props.history.replace("/checkout/contact-data");
-	};
+	const checkOutCancelledHandler = useCallback(() => {
+		history.push("/");
+	}, [history]);
 
-	render() {
-		let summary = <Redirect to='/' />; //* if is no loaded the ingredients :D
+	const checkOutContinueHandler = useCallback(() => {
+		history.replace("/checkout/contact-data");
+	}, [history]);
 
-		if (this.props.ingredients && !this.props.purchased) {
-			summary = (
-				<div className={classes.CheckOut}>
-					<CheckOutSummary
-						ingredients={this.props.ingredients}
-						cancel={this.checkOutCancelledHandler}
-						continue={this.checkOutContinueHandler}
-					/>
-					<Route path={this.props.match.url + "/contact-data"} component={ContactData} />
-				</div>
-			);
-		}
+	let summary = <Redirect to='/' />; //* if is no loaded the ingredients :D
 
-		return summary;
+	if (props.ingredients && !props.purchased) {
+		summary = (
+			<div className={classes.CheckOut}>
+				<CheckOutSummary
+					ingredients={props.ingredients}
+					cancel={checkOutCancelledHandler}
+					continue={checkOutContinueHandler}
+				/>
+				<Route path={match.url + "/contact-data"} component={ContactData} />
+			</div>
+		);
 	}
-}
+
+	return summary;
+};
 const mapStateToProps = (state) => {
 	return {
 		ingredients: state.burgerBuilder.ingredients,

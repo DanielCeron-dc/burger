@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import classes from "./Auth.module.css";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
@@ -9,43 +9,42 @@ import { Redirect } from "react-router-dom";
 import * as actions from "../../store/actions";
 import Spinner from "../../components/UI/Spinner/Spinner";
 
-class Auth extends Component {
-	state = {
-		redirectToHome: false,
-		redirectToCheckOut: false,
-		disable: true,
-		isSignUp: false,
-		orderForm: {
-			email: {
-				elementType: "input",
-				elementConfig: {
-					type: "text",
-					placeholder: "Your email",
-				},
-				value: "",
-				validation: {
-					required: true,
-					isEmail: true,
-				},
-				valid: false,
-			},
-			password: {
-				elementType: "input",
-				elementConfig: {
-					type: "Password",
-					placeholder: "Your password",
-				},
-				value: "",
-				validation: {
-					required: true,
-					minLenght: 6,
-				},
-				valid: false,
-			},
-		},
-	};
+const Auth = (props) => {
+	const [redirectToHome, setredirectToHome] = useState(false);
+	const [redirectToCheckOut, setredirectToCheckOut] = useState(false);
+	const [disable, setdisable] = useState(true);
+	const [isSignUp, setisSignUp] = useState(false);
 
-	checkValidityInputs = (inputIdentifier, valid, form) => {
+	const [orderForm, setOrderForm] = useState({
+		email: {
+			elementType: "input",
+			elementConfig: {
+				type: "text",
+				placeholder: "Your email",
+			},
+			value: "",
+			validation: {
+				required: true,
+				isEmail: true,
+			},
+			valid: false,
+		},
+		password: {
+			elementType: "input",
+			elementConfig: {
+				type: "Password",
+				placeholder: "Your password",
+			},
+			value: "",
+			validation: {
+				required: true,
+				minLenght: 6,
+			},
+			valid: false,
+		},
+	});
+
+	const checkValidityInputs = (inputIdentifier, valid, form) => {
 		for (let key in form) {
 			if (form[key].validation) {
 				if (key === inputIdentifier) {
@@ -64,88 +63,82 @@ class Auth extends Component {
 	};
 
 	//!new
-	inputStateHandler = (inputIdentifier, valid, value) => {
-		const orderFormCopy = this.state.orderForm;
-		const copy = this.state.orderForm[inputIdentifier];
+	const inputStateHandler = (inputIdentifier, valid, value) => {
+		const orderFormCopy = orderForm;
+		const copy = orderForm[inputIdentifier];
 		copy.valid = valid;
 		copy.value = value;
-
 		orderFormCopy[inputIdentifier] = copy;
-		this.setState({
-			orderForm: orderFormCopy,
-			disable: this.checkValidityInputs(inputIdentifier, valid, this.state.orderForm),
-		});
+
+		setOrderForm(orderFormCopy);
+		setdisable(checkValidityInputs(inputIdentifier, valid, orderFormCopy));
 	};
 
-	LoginHandler = (event) => {
+	const LoginHandler = (event) => {
 		event.preventDefault();
-		this.props.onAuth(this.state.orderForm.email.value, this.state.orderForm.password.value, this.state.isSignUp);
+		props.onAuth(orderForm.email.value, orderForm.password.value, isSignUp);
 		//! i need to check if is there an error
-		if (this.props.error !== null) {
+		if (props.error !== null) {
 			return;
 		}
 
-		if (this.props.purchasing) {
-			this.props.changePurchasingState(false);
-			this.setState({ redirectToCheckOut: true });
+		if (props.purchasing) {
+			props.changePurchasingState(false);
+			setredirectToCheckOut(true);
 		} else {
-			this.setState({ redirectToHome: true });
+			setredirectToHome(true);
 		}
 	};
 
-	switchAuthMode = (event) => {
+	const switchAuthMode = (event) => {
 		event.preventDefault();
-		this.setState((prevState) => {
-			return { isSignUp: !prevState.isSignUp };
-		});
+		setisSignUp(!isSignUp);
 	};
 
-	render() {
-		let inputElements = [];
+	let inputElements = [];
 
-		for (let key in this.state.orderForm) {
-			inputElements.push(
-				<Input
-					key={key}
-					id={key}
-					value={this.state.orderForm[key].value}
-					inputType={this.state.orderForm[key].elementType}
-					inputConfig={this.state.orderForm[key].elementConfig}
-					changed={this.inputStateHandler}
-					rules={this.state.orderForm[key].validation}
-				/>
-			);
-		}
-
-		if (this.props.token !== null) {
-			if (this.state.redirectToCheckOut) {
-				return <Redirect to='/checkout' />;
-			}
-			if (this.state.redirectToHome) {
-				return <Redirect to='/' />;
-			}
-		}
-
-		return (
-			<div className={classes.Auth}>
-				{this.props.loading ? (
-					<Spinner />
-				) : (
-					<form>
-						{this.props.error ? <p>{this.props.error}</p> : null}
-						{inputElements}
-						<Button clicked={this.LoginHandler} btnType='Success' disabled={this.state.disable}>
-							{!this.state.isSignUp ? "SignIn" : "SignUp"}
-						</Button>
-						<Button clicked={this.switchAuthMode} btnType='Danger'>
-							Switch to {this.state.isSignUp ? "SignIn" : "SignUp"}
-						</Button>
-					</form>
-				)}
-			</div>
+	for (let key in orderForm) {
+		inputElements.push(
+			<Input
+				key={key}
+				id={key}
+				value={orderForm[key].value}
+				inputType={orderForm[key].elementType}
+				inputConfig={orderForm[key].elementConfig}
+				changed={inputStateHandler}
+				rules={orderForm[key].validation}
+			/>
 		);
 	}
-}
+
+	if (props.token !== null) {
+		if (redirectToCheckOut) {
+			return <Redirect to='/checkout' />;
+		}
+		if (redirectToHome) {
+			return <Redirect to='/' />;
+		}
+	}
+
+	return (
+		<div className={classes.Auth}>
+			{props.loading ? (
+				<Spinner />
+			) : (
+				<form>
+					{props.error ? <p>{props.error}</p> : null}
+					{inputElements}
+					<Button clicked={LoginHandler} btnType='Success' disabled={disable}>
+						{!isSignUp ? "SignIn" : "SignUp"}
+					</Button>
+					<Button clicked={switchAuthMode} btnType='Danger'>
+						Switch to {isSignUp ? "SignIn" : "SignUp"}
+					</Button>
+				</form>
+			)}
+		</div>
+	);
+};
 
 const mapDispatchToProps = (dispatch) => {
 	return {
