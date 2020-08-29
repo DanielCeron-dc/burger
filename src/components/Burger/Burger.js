@@ -2,6 +2,8 @@ import React from "react";
 import classes from "./Burger.module.css";
 import Ingredient from "./Burgeringredient/Burgeringredient";
 
+
+//this is a comment to view if i can save my work with gitpod :D
 const burger = (props) => {
 	let TranformedIngredients = Object.keys(props.ingredients)
 		.map((igKey) => {
